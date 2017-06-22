@@ -1,0 +1,70 @@
+<!DOCTYPE HTML> 
+<html>
+<head>
+	<meta charset='UTF-8'/>
+	<title></title>
+	<link rel='stylesheet' href= "stylesheets/style.css" />
+
+	<script src= "http://code.jquery.com/jquery-1.7.1.js"></script>
+	<script src= "http://localhost:3001/socket.io/socket.io.js"></script>
+</head>
+<body>
+	<h1>채팅</h1>
+	<div id="contents">
+		<div class="chat_background">
+			<div class="chat_login">
+				<div id="log">
+					<span>아이디 : <input type="text" id="userid" /></span>
+					<span>방이름 : <input type="text" id="roomname"/></span>
+					<div style="position: absolute; left: 240px; top: 30px"><input type="button" id="enter" value="입장"/></div>
+				</div>
+
+			</div>	
+			<div id="chat_form" style="display:none;">
+				<div style="width: 300px; height: 300px; border: solid 1px;" id="txtarea">
+					<dl id="txtappend">
+					</dl>
+				</div>
+				<br />
+				<input type="text" style="width:255px;" id="txt"/>
+				<input type="button" value="ENTER" id="btn"/>
+			</div>	
+		</div>
+	</div>
+	<script>
+		$(document).ready(function(){
+			var userid;
+			<!-- 방 접속한 경우 -->
+			var socket = io.connect('http://localhost:3001');
+			$('#enter').click(function (){
+				userid=document.getElementById('userid');
+				var roomname=document.getElementById('roomname');
+
+				socket.emit('join', {'userid': userid.value, 'roomname':roomname.value});
+				document.getElementById('log').style.display='none';
+				document.getElementById('chat_form').style.display='block';
+			});
+
+			<!-- 새로 온 유저에 대한 알림-->
+			socket.on('join', function(data){
+				alert(data);
+				$('#txtappend').append('<dd style="margin:0px;">' + data + '님이접속하셨습니다.</dd>');
+			});
+
+			<!-- 메세지 발송 이벤트 -->
+			$('#btn').click(function () {
+				var message = $('#txt').val();
+				socket.emit('message', {'message': message, 'user': userid.value});
+			});
+
+			<!-- 메세지 수신 이벤트 -->
+			socket.on('new message',function(data){
+				$('#txtappend').append('<dd style="margin:0px;">' + data.username + ' : ' + data.message + '</dd>');
+				//$('#txt').val("");
+			});
+		});
+
+
+	</script>
+</body>
+</html>
